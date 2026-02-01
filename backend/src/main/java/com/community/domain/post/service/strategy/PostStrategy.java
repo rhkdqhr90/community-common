@@ -15,6 +15,14 @@ public interface PostStrategy {
     void validateCreate(PostCreateRequest request);
 
     /**
+     * 게시글 수정 시 유효성 검증
+     *
+     * @param request 게시글 수정 요청
+     * @throws com.community.core.exception.custom.BadRequestException 검증 실패 시
+     */
+    void validateUpdate(PostUpdateRequest request);
+
+    /**
      * 게시글 생성 전처리
      * @param post 생성될 게시글 엔티티
      * @param request 생성요청

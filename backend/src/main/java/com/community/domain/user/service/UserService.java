@@ -1,5 +1,6 @@
 package com.community.domain.user.service;
 
+import com.community.core.config.properties.AppProperties;
 import com.community.core.exception.ErrorCode;
 import com.community.core.exception.custom.BadRequestException;
 import com.community.core.exception.custom.NotFoundException;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AppProperties appProperties;
 
     /**
      * 회원 가입
@@ -47,7 +49,7 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         //사용자 생성
-        User user = User.createLocalUser(request.getEmail(),encodedPassword,request.getNickname());
+        User user = User.createLocalUser(request.getEmail(),request.getNickname(),encodedPassword);
 
         //저장
         User savedUser = userRepository.save(user);
@@ -71,7 +73,7 @@ public class UserService {
     /**
      *  프로필 수정
      * @param userId 현재 로그인한 아이디
-     * @param request
+     * @param request 프로필업데이트 DTO
      */
     public void updateProfile(Long userId, ProfileUpdateRequest request){
         log.info("[PROFILE_UPDATE] 프로필 수정 시도: userId={}", userId);
@@ -82,15 +84,15 @@ public class UserService {
             if(userRepository.existsByNickname(request.getNickname())){
                 throw new BadRequestException(ErrorCode.DUPLICATE_NICKNAME);
             }
-          try {
-              user.updateNickname(request.getNickname());
-              log.info("[PROFILE_UPDATE] 닉네임 변경: userId={}, newNickname={}",
-                      userId, request.getNickname());
-          }catch (IllegalStateException e){
-              log.warn("[PROFILE_UPDATE] 닉네임 변경 제한: userId={}, lastChanged={}",
-                      userId, user.getNicknameChangedAt());
-              throw new BadRequestException(ErrorCode.NICKNAME_CHANGE_LIMIT);
-          }
+            int intervalDays = appProperties.getUser().getNicknameChangeIntervalDays();
+            if (!user.canChangeNickname(intervalDays)) {
+                log.warn("[PROFILE_UPDATE] 닉네임 변경 제한: userId={}, lastChanged={}, intervalDays={}",
+                        userId, user.getNicknameChangedAt(), intervalDays);
+                throw new BadRequestException(ErrorCode.NICKNAME_CHANGE_LIMIT);
+            }
+            user.updateNickname(request.getNickname());
+            log.info("[PROFILE_UPDATE] 닉네임 변경: userId={}, newNickname={}",
+                    userId, request.getNickname());
         }
         if(request.getProfileImage() != null){
             user.updateProfileImage(request.getProfileImage());
@@ -100,8 +102,8 @@ public class UserService {
 
     /**
      * 프로필 조회(공개 정보)
-     * @param userId
-     * @return
+     * @param userId 사용자 ID
+     * @return 프로필
      */
     public ProfileResponse getUserProfile(Long userId){
         User user = findUserById(userId);

@@ -66,10 +66,21 @@ jwt:
   secret: local-dev-secret-key-minimum-32-characters-long
   access-token-validity: 3600        # 1시간 (초)
   refresh-token-validity: 1209600    # 14일 (초)
-# OAuth2 리다이렉트 URL (프론트엔드)
+# ===========================================
+# 로컬 환경 오버라이드 설정
+# ===========================================
+
+# 앱 설정 (로컬 오버라이드)
 app:
+  user:
+    nickname-change-interval-days: 30
   oauth2:
     redirect-url: http://localhost:3000/oauth2/callback
+
+# Redis 키 프리픽스 (로컬 환경용 - 필요시 오버라이드)
+# redis:
+#   key-prefix:
+#     refresh-token: "local:refresh_token:"
 
 storage:
   type: minio

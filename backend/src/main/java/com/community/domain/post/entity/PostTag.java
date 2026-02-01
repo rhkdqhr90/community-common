@@ -48,4 +48,13 @@ public class PostTag {
     public static PostTag of(Post post, Tag tag) {
         return new PostTag(post, tag);
     }
+
+    // ========== 연관관계 편의 메서드 ==========
+
+    /**
+     * Post 설정 (양방향 관계)
+     */
+    public void setPost(Post post) {
+        this.post = post;
+    }
 }

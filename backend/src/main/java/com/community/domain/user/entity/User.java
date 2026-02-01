@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@SQLRestriction("delete_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 public class User extends BaseAuditableEntity {
 
     @Column(nullable = false, unique = true)
@@ -95,13 +95,23 @@ public class User extends BaseAuditableEntity {
     }
 
     /**
-     * 닉네임 변경 (30일에 1회)
-     * @param nickname 30일에 1회
+     * 닉네임 변경 가능 여부 확인
+     * @param intervalDays 닉네임 변경 제한 일수
+     * @return 변경 가능 여부
      */
-    public void updateNickname(String nickname){
-        if(this.nicknameChangedAt != null && this. nicknameChangedAt.plusDays(30).isAfter(LocalDateTime.now())){
-            throw new IllegalStateException("닉네임은 30일에 한 번만 변경 할 수 있습니다.");
+    public boolean canChangeNickname(int intervalDays) {
+        if (this.nicknameChangedAt == null) {
+            return true;
         }
+        return this.nicknameChangedAt.plusDays(intervalDays).isBefore(LocalDateTime.now());
+    }
+
+    /**
+     * 닉네임 변경
+     * 주의: 변경 가능 여부는 서비스 레이어에서 canChangeNickname()으로 먼저 확인해야 함
+     * @param nickname 새 닉네임
+     */
+    public void updateNickname(String nickname) {
         this.nickname = nickname;
         this.nicknameChangedAt = LocalDateTime.now();
     }

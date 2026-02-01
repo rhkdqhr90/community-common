@@ -31,3 +31,43 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+# ===========================================
+# 애플리케이션 설정 (외부화)
+# ===========================================
+
+# 보안 경로 설정
+security:
+  paths:
+    # 인증 없이 접근 가능 (모든 HTTP 메서드)
+    permit-all:
+      - /api/v1/auth/**
+    # GET 요청만 인증 없이 접근 가능
+    permit-get-only:
+      - /api/v1/boards/**
+      - /api/v1/posts/**
+    # POST 요청만 인증 없이 접근 가능
+    permit-post-only:
+      - /api/v1/users
+    # ADMIN 권한 필요
+    admin-only:
+      - /api/v1/admin/**
+    # BCrypt 암호화 강도
+    password-strength: 12
+
+# Redis 키 프리픽스 설정
+redis:
+  key-prefix:
+    refresh-token: "refresh_token:"
+    cache: "cache:"
+    session: "session:"
+    email-verification: "email_verification:"
+
+# 앱 설정
+app:
+  user:
+    # 닉네임 변경 제한 일수
+    nickname-change-interval-days: 30
+  oauth2:
+    # OAuth2 성공 후 프론트엔드 리다이렉트 URL
+    redirect-url: ${APP_OAUTH2_REDIRECT_URL:http://localhost:3000/oauth2/callback}

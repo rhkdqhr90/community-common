@@ -45,6 +45,14 @@ public class Tag extends BaseEntity {
     // ========== 비즈니스 메서드 ==========
 
     /**
+     * 태그 생성
+     */
+    public static Tag create(String name) {
+        String slug = createSlug(name);
+        return Tag.builder().name(name).slug(slug).build();
+    }
+
+    /**
      * 사용 횟수 증가
      */
     public void incrementUsageCount() {

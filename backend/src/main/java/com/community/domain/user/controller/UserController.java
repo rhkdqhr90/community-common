@@ -60,8 +60,8 @@ public class UserController {
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@CurrentUser Long userId,@Valid @RequestBody ProfileUpdateRequest request){
         log.info("[API] 프로필 수정 요청: userId={}", userId);
+        userService.updateProfile(userId, request);  // ✅ 수정 호출
         UserResponse response = userService.getMyInfo(userId);
-
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

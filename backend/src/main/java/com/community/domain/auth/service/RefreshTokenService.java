@@ -1,5 +1,6 @@
 package com.community.domain.auth.service;
 
+import com.community.core.config.properties.RedisKeyProperties;
 import com.community.core.security.jwt.JwtProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +16,11 @@ public class RefreshTokenService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtProperties jwtProperties;
+    private final RedisKeyProperties redisKeyProperties;
 
-    private static final String KEY_PREFIX = "refresh_token:";
+    private String getKeyPrefix() {
+        return redisKeyProperties.getRefreshToken();
+    }
 
     /**
      * RefreshToken 저장
@@ -24,7 +28,7 @@ public class RefreshTokenService {
      * @param userId 사용자 ID
      */
     public void saveRefreshToken( Long userId, String refreshToken){
-        String key = KEY_PREFIX + userId;
+        String key = getKeyPrefix() + userId;
         long ttl = jwtProperties.getRefreshTokenValidity();
 
         redisTemplate.opsForValue().set(key, refreshToken, ttl, TimeUnit.SECONDS);
@@ -37,7 +41,7 @@ public class RefreshTokenService {
      * @return refresh token(없으면 null)
      */
     public String getRefreshToken(Long userId){
-        String key = KEY_PREFIX + userId;
+        String key = getKeyPrefix() + userId;
         String token = redisTemplate.opsForValue().get(key);
 
         if(token != null){
@@ -77,7 +81,7 @@ public class RefreshTokenService {
      * @param userId 사용자 ID
      */
     public void deleteRefreshToken(Long userId){
-        String key = KEY_PREFIX + userId;
+        String key = getKeyPrefix() + userId;
         Boolean deleted = redisTemplate.delete(key);
 
         if (Boolean.TRUE.equals(deleted)) {
@@ -93,7 +97,7 @@ public class RefreshTokenService {
      * @return 남은시간(초) 없으면 -2
      */
     public Long gerTtl(Long userId){
-        String key = KEY_PREFIX + userId;
+        String key = getKeyPrefix() + userId;
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
 
         log.debug("[Redis] TTL 조회: userId={}, ttl={}초", userId, ttl);

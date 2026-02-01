@@ -1,5 +1,6 @@
 package com.community.core.config;
 
+import com.community.core.config.properties.SecurityPathProperties;
 import com.community.core.security.jwt.JwtAuthenticationFilter;
 import com.community.core.security.oauth2.CustomOAuth2UserService;
 import com.community.core.security.oauth2.OAuth2SuccessHandler;
@@ -23,13 +24,14 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final SecurityPathProperties securityPathProperties;
     /**
      * 비밀 번호 암호화 인코더
-     * @return BCryptPasswordEncoder(strength=12)
+     * @return BCryptPasswordEncoder (강도는 설정에서 관리)
      */
     @Bean
     public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder(12);
+        return new BCryptPasswordEncoder(securityPathProperties.getPasswordStrength());
     }
 
     @Bean
@@ -39,19 +41,27 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 //세션 사용 안함
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                //모든 요청 허용(임시)
-                .authorizeHttpRequests(auth -> auth
-                        // 공개 API
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/boards/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
-
+                // 요청 권한 설정 (application.yml에서 관리)
+                .authorizeHttpRequests(auth -> {
+                        // 공개 API (모든 메서드)
+                        securityPathProperties.getPermitAll().forEach(
+                                path -> auth.requestMatchers(path).permitAll()
+                        );
+                        // 공개 API (GET만)
+                        securityPathProperties.getPermitGetOnly().forEach(
+                                path -> auth.requestMatchers(HttpMethod.GET, path).permitAll()
+                        );
+                        // 공개 API (POST만)
+                        securityPathProperties.getPermitPostOnly().forEach(
+                                path -> auth.requestMatchers(HttpMethod.POST, path).permitAll()
+                        );
                         // 관리자 API
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-
+                        securityPathProperties.getAdminOnly().forEach(
+                                path -> auth.requestMatchers(path).hasRole("ADMIN")
+                        );
                         // 나머지는 인증 필요
-                        .anyRequest().authenticated())
+                        auth.anyRequest().authenticated();
+                })
                 //OAuth2 로그인
                 .oauth2Login(oauth2 -> oauth2
                      // OAuth2 로그인 페이지 경로 (프론트엔드로 리다이렉트)

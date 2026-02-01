@@ -13,6 +13,11 @@ public class GeneralPostStrategy implements PostStrategy{
     }
 
     @Override
+    public void validateUpdate(PostUpdateRequest request) {
+
+    }
+
+    @Override
     public void beforeCreate(Post post, PostCreateRequest request) {
 
     }

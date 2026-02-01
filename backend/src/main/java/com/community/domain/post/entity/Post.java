@@ -21,7 +21,7 @@ import java.util.Map;
 @Table(name = "posts")
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@SQLRestriction("delete_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 public class Post extends BaseAuditableEntity {
     /**
      * 제목
@@ -54,6 +54,12 @@ public class Post extends BaseAuditableEntity {
      */
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
+
+    /**
+     * 태그 목록
+     */
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostTag> tags = new ArrayList<>();
 
     /**
      * 조회수
@@ -206,6 +212,13 @@ public class Post extends BaseAuditableEntity {
     }
 
     /**
+     * 공지글 토글
+     */
+    public void toggleNotice() {
+        this.isNotice = !this.isNotice;
+    }
+
+    /**
      * extra_fields 설정
      */
     public void setExtraFields(Map<String, Object> extraFields) {
@@ -227,4 +240,20 @@ public class Post extends BaseAuditableEntity {
         this.images.clear();
         images.forEach(this::addImage);
     }
+    /**
+     * 태그 추가
+     */
+    public void addTag(PostTag postTag) {
+        this.tags.add(postTag);
+        postTag.setPost(this);
+    }
+
+    /**
+     * 태그 목록 설정
+     */
+    public void setTags(List<PostTag> tags) {
+        this.tags.clear();
+        tags.forEach(this::addTag);
+    }
+
 }
