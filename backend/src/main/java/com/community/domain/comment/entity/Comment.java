@@ -2,9 +2,9 @@ package com.community.domain.comment.entity;
 
 import com.community.core.common.entity.BaseEntity;
 import com.community.domain.post.entity.Post;
+import com.community.domain.reaction.entity.Reactable;
 import com.community.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLRestriction;
@@ -17,7 +17,7 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
-public class Comment extends BaseEntity {
+public class Comment extends BaseEntity implements Reactable {
 
     private static final int MAX_CONTENT_LENGTH = 10000;
     private static final int MAX_DEPTH = 1;
@@ -57,7 +57,6 @@ public class Comment extends BaseEntity {
     @Version
     private Long version;
 
-    @Builder
     private Comment(Post post, User user, Comment parent, String content, boolean isAnonymous) {
         this.post = Objects.requireNonNull(post, "게시글은 필수입니다.");
         this.user = Objects.requireNonNull(user, "작성자는 필수입니다.");
@@ -65,6 +64,23 @@ public class Comment extends BaseEntity {
         this.content = validateContent(content);
         this.isAnonymous = isAnonymous;
         this.depth = calculateDepth(parent);
+    }
+
+    // ========== 정적 팩토리 메서드 ==========
+
+    /**
+     * 댓글 생성 (최상위)
+     */
+    public static Comment create(Post post, User user, String content, boolean isAnonymous) {
+        return new Comment(post, user, null, content, isAnonymous);
+    }
+
+    /**
+     * 대댓글 생성
+     */
+    public static Comment createReply(Post post, User user, Comment parent, String content, boolean isAnonymous) {
+        Objects.requireNonNull(parent, "대댓글의 부모 댓글은 필수입니다.");
+        return new Comment(post, user, parent, content, isAnonymous);
     }
 
     private static String validateContent(String content) {

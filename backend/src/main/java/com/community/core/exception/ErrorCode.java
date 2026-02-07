@@ -62,8 +62,11 @@ public enum ErrorCode {
     COMMENT_NOT_SELECTED(400, "CM008", "채택되지 않은 댓글입니다."),
     INVALID_PARENT_COMMENT(400, "CM009", "유효하지 않은 부모 댓글입니다."),
     ONLY_QNA_CAN_SELECT(400, "CM010", "QnA 게시판에서만 채택할 수 있습니다."),
-    // ========== Reaction (R) ==========
-    CANNOT_REACT_OWN(400, "R001", "본인의 글/댓글에는 반응할 수 없습니다."),
+
+    // ========== Reaction (RC) ==========
+    CANNOT_REACT_OWN_CONTENT(403, "RC001", "본인의 글/댓글에는 반응할 수 없습니다."),
+    TARGET_ALREADY_DELETED(400, "RC002", "삭제된 글/댓글에는 반응할 수 없습니다."),
+    REACTION_NOT_FOUND(404, "RC003", "반응을 찾을 수 없습니다."),
 
     // ========== File (F) ==========
     FILE_NOT_FOUND(404, "F001", "파일을 찾을 수 없습니다."),

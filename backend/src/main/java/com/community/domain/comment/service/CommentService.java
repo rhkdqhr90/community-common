@@ -59,13 +59,9 @@ public class CommentService {
                 throw new BadRequestException(ErrorCode.INVALID_PARENT_COMMENT);
             }
         }
-        Comment comment = Comment.builder()
-                .post(post)
-                .user(user)
-                .parent(parent)
-                .content(request.getContent())
-                .isAnonymous(request.isAnonymous())
-                .build();
+        Comment comment = (parent == null)
+                ? Comment.create(post, user, request.getContent(), request.isAnonymous())
+                : Comment.createReply(post, user, parent, request.getContent(), request.isAnonymous());
 
         commentRepository.save(comment);
         post.incrementCommentCount();

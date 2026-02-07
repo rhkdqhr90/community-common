@@ -2,6 +2,7 @@ package com.community.domain.post.entity;
 
 import com.community.core.common.entity.BaseAuditableEntity;
 import com.community.domain.board.entity.Board;
+import com.community.domain.reaction.entity.Reactable;
 import com.community.domain.user.entity.User;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -22,7 +23,7 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
-public class Post extends BaseAuditableEntity {
+public class Post extends BaseAuditableEntity implements Reactable {
     /**
      * 제목
      */
